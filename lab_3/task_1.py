@@ -35,11 +35,9 @@ for name, mdl in models.items():
     y_pred = mdl.predict(X_test)
     print(f"{name} accuracy: {accuracy_score(y_test, y_pred):.3f}")
     print(classification_report(y_test, y_pred))
-    print("-" * 40)
 
-rf = models["Random Forest"]
-importances = rf.feature_importances_
+tree = models["Random Forest"]
+importances = tree.feature_importances_
 plt.barh(X.columns, importances)
 plt.xlabel("Importance")
-plt.title("Feature Importances (Random Forest)")
 plt.show()
