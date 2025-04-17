@@ -1,32 +1,45 @@
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder
+from sklearn.model_selection import train_test_split
+from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score, classification_report
 import matplotlib.pyplot as plt
 
-
 df = pd.read_csv("health_activity_data.csv")
-df.drop("ID", axis=1)
-
-df[["BP_first", "BP_second"]] = df["Blood_Pressure"].str.split("/", expand=True).astype(int)
+df.drop("ID", axis=1, inplace=True)
+df[["BP_first","BP_second"]] = (
+    df["Blood_Pressure"].str.split("/", expand=True).astype(int)
+)
 df.drop("Blood_Pressure", axis=1, inplace=True)
 
-encoder = LabelEncoder()
+for col in df.select_dtypes(include="object"):
+    df[col] = LabelEncoder().fit_transform(df[col])
 
-for col in df.select_dtypes(include=['object']).columns:
-    df[col] = encoder.fit_transform(df[col])
-
-x = df.drop("Gender", axis=1)
+X = df.drop("Gender", axis=1)
 y = df["Gender"]
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y,
+    test_size=0.3,
+    random_state=42,
+    stratify=y
+)
 
-model = RandomForestClassifier(n_estimators=100, random_state=999)
-model.fit(x, y)
+models = {
+    "Decision Tree": DecisionTreeClassifier(max_depth=5, random_state=999),
+    "Random Forest": RandomForestClassifier(n_estimators=100, random_state=999)
+}
 
-example = [x.iloc[11].values]
-print("Prediction (0 = Female, 1 = Male): ", model.predict(example))
+for name, mdl in models.items():
+    mdl.fit(X_train, y_train)
+    y_pred = mdl.predict(X_test)
+    print(f"{name} accuracy: {accuracy_score(y_test, y_pred):.3f}")
+    print(classification_report(y_test, y_pred))
+    print("-" * 40)
 
-importances = model.feature_importances_
-features = x.columns
-plt.barh(features, importances)
+rf = models["Random Forest"]
+importances = rf.feature_importances_
+plt.barh(X.columns, importances)
 plt.xlabel("Importance")
-plt.title("Importance of attributes in random forest")
+plt.title("Feature Importances (Random Forest)")
 plt.show()
