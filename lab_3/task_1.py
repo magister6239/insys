@@ -16,8 +16,8 @@ df.drop("Blood_Pressure", axis=1, inplace=True)
 for col in df.select_dtypes(include="object"):
     df[col] = LabelEncoder().fit_transform(df[col])
 
-X = df.drop("Gender", axis=1)
-y = df["Gender"]
+X = df.drop("Smoker", axis=1)
+y = df["Smoker"]
 X_train, X_test, y_train, y_test = train_test_split(
     X, y,
     test_size=0.3,
